@@ -1,15 +1,18 @@
 -- Chargement de Fluent UI
 local FluentUrl = "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
-local success, Fluent = pcall(loadstring(game:HttpGet(FluentUrl)))
+local success, FluentOrError = pcall(loadstring(game:HttpGet(FluentUrl)))
 
-if not success then
-    warn("[ERREUR] Échec du chargement de Fluent UI :", Fluent)
+if not success or type(FluentOrError) ~= "table" then
+    warn("[ERREUR] Échec du chargement de Fluent UI :", FluentOrError)
     return
 end
+local Fluent = FluentOrError
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
+
+local autoFarm = false -- Déclaration avant usage
 
 local function getHRP()
     local character = player.Character or player.CharacterAdded:Wait()
@@ -84,16 +87,6 @@ local function takeQuest(name)
     end
 end
 
-local function GetBossModel(name)
-    local bosses = findBoss(name)
-    for _, boss in ipairs(bosses) do
-        if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-            return boss
-        end
-    end
-    return nil
-end
-
 local function findBoss(name)
     local found = {}
     for _, folderName in ipairs({ "Monster", "Boss", "Mon" }) do
@@ -107,6 +100,16 @@ local function findBoss(name)
         end
     end
     return found
+end
+
+local function GetBossModel(name)
+    local bosses = findBoss(name)
+    for _, boss in ipairs(bosses) do
+        if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+            return boss
+        end
+    end
+    return nil
 end
 
 local function IsBossAlive(name)
@@ -141,15 +144,13 @@ local function TeleportToBossLoop(bossName)
                 warn("[❓] Boss non trouvé ou HRP manquant :", bossName)
             end
 
-            task.wait()
+            task.wait(0.1) -- petit wait pour ne pas spammer le serveur
         end
         isTeleporting = false
     end)
 end
 
 -- Boucle AutoFarm
-local autoFarm = false
-
 task.spawn(function()
     while true do
         if autoFarm then
@@ -187,12 +188,17 @@ task.spawn(function()
     end
 end)
 
--- Toggle Fluent UI
-Tabs.Main:AddToggle("AutoFarm", {
-    Title = "Auto Farm LVL",
-    Default = false,
-    Callback = function(state)
-        autoFarm = state
-        warn("[TOGGLE] Auto Farm", state and "Activé" or "Désactivé")
-    end
-})
+-- Ajout du toggle en sécurité
+local successToggle, err = pcall(function()
+    Tabs.Main:AddToggle("AutoFarm", {
+        Title = "Auto Farm LVL",
+        Default = false,
+        Callback = function(state)
+            autoFarm = state
+            warn("[TOGGLE] Auto Farm", state and "Activé" or "Désactivé")
+        end
+    })
+end)
+if not successToggle then
+    warn("[ERREUR] Impossible de créer le toggle AutoFarm :", err)
+end
