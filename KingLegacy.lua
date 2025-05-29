@@ -77,6 +77,19 @@ local function takeQuest(name)
     end
 end
 
+
+
+local function GetBossModel(name)
+    local bosses = findBoss(name)
+    for _, boss in ipairs(bosses) do
+        if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+            return boss
+        end
+    end
+    return nil
+end
+
+
 local function findBoss(name)
     local found = {}
     for _, folderName in ipairs({ "Monster", "Boss", "Mon" }) do
@@ -125,7 +138,7 @@ local function TeleportToBossLoop(bossName)
                 warn("[❓] Boss non trouvé ou HRP manquant :", bossName)
             end
 
-            task.wait(0.1)
+            task.wait()
         end
         isTeleporting = false
     end)
@@ -171,6 +184,9 @@ task.spawn(function()
         task.wait(0.5)
     end
 end)
+
+
+
 
 -- Toggle Fluent UI
 Tabs.Main:AddToggle("AutoFarm", {
