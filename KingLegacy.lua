@@ -87,30 +87,45 @@ local function takeQuest(name)
     end
 end
 
--- Trouver le boss dans Monster > Boss et Monster > Mon
 local function findBoss(name)
     local found = {}
-    print("[DEBUG] Recherche boss:", name)
+    print("[DEBUG] Recherche du boss :", name)
 
     local monsterFolder = workspace:FindFirstChild("Monster")
-    if monsterFolder then
-        for _, subFolderName in ipairs({ "Boss", "Mon" }) do
-            local subFolder = monsterFolder:FindFirstChild(subFolderName)
-            if subFolder then
-                for _, model in ipairs(subFolder:GetChildren()) do
-                    if model:IsA("Model") and model.Name == name and model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
-                        print("✅ Boss trouvé dans :", subFolderName, "→", model.Name)
-                        table.insert(found, model)
+    if not monsterFolder then
+        warn("❌ Dossier 'Monster' introuvable dans Workspace")
+        return found
+    end
+
+    for _, subFolderName in ipairs({ "Boss", "Mon" }) do
+        local subFolder = monsterFolder:FindFirstChild(subFolderName)
+        if subFolder then
+            print("🔎 Recherche dans dossier :", subFolderName)
+            for _, model in ipairs(subFolder:GetChildren()) do
+                if model:IsA("Model") then
+                    print(" - Modèle trouvé :", model.Name)
+                    if model.Name == name then
+                        if model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
+                            print("✅ Boss correspondant trouvé :", model.Name)
+                            table.insert(found, model)
+                        else
+                            warn("⚠️ Boss trouvé mais manque HRP ou Humanoid :", model.Name)
+                        end
                     end
                 end
             end
+        else
+            print("📁 Dossier absent :", subFolderName)
         end
-    else
-        warn("❌ Dossier 'Monster' introuvable dans Workspace")
+    end
+
+    if #found == 0 then
+        warn("❌ Aucun boss trouvé avec le nom exact :", name)
     end
 
     return found
 end
+
 
 local function GetBossModel(name)
     local bosses = findBoss(name)
