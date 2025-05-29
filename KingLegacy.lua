@@ -19,3 +19,21 @@ local Tabs = {
     Sea = Window:AddTab({ Title = "Sea", Icon = "waves" }),
     Misc = Window:AddTab({ Title = "Misc", Icon = "cog" })
 }
+
+
+
+
+
+local Main = Tab:AddToggle("Main", 
+{
+    Title = "Auto Farm LVL", 
+    Description = "Toggle description",
+    Default = false
+    Callback = function(state)
+	if state then
+	    print("Toggle On")
+	else
+	    print("Toggle Off")
+        end
+    end 
+})
