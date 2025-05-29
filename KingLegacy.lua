@@ -89,18 +89,29 @@ end
 
 local function findBoss(name)
     local found = {}
-    for _, folderName in ipairs({ "Monster", "Boss", "Mon" }) do
-        local folder = workspace:FindFirstChild(folderName)
-        if folder then
-            for _, model in ipairs(folder:GetChildren()) do
-                if model:IsA("Model") and model.Name == name and model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
-                    table.insert(found, model)
+    print("[DEBUG] Recherche boss:", name)
+
+    local monsterFolder = workspace:FindFirstChild("Monster")
+    if monsterFolder then
+        for _, subFolderName in ipairs({ "Boss", "Mon" }) do
+            local subFolder = monsterFolder:FindFirstChild(subFolderName)
+            if subFolder then
+                for _, model in ipairs(subFolder:GetChildren()) do
+                    print("→ Trouvé modèle:", model.Name)
+                    if model:IsA("Model") and model.Name == name and model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
+                        print("✅ Match trouvé:", model.Name)
+                        table.insert(found, model)
+                    end
                 end
             end
         end
+    else
+        warn("❌ Dossier 'Monster' introuvable dans Workspace")
     end
+
     return found
 end
+
 
 local function GetBossModel(name)
     local bosses = findBoss(name)
