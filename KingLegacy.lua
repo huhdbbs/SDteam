@@ -185,7 +185,7 @@ task.spawn(function()
                         local bosses = findBoss(questData.BossName)
                         for _, boss in ipairs(bosses) do
                             if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                                TeleportToBossLoop(boss.Name)
+                                TTeleportToBossLoop(questData.BossName)
                                 break
                             end
                         end
