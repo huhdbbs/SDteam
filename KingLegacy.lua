@@ -92,15 +92,22 @@ local function findBoss(name)
     return found
 end
 
+local function getHRP()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:FindFirstChild("HumanoidRootPart")
+end
+
 local function tpToBoss(boss)
     local hrp = getHRP()
-    if boss and boss:FindFirstChild("HumanoidRootPart") then
+    if boss and boss:FindFirstChild("HumanoidRootPart") and hrp then
         local pos = boss.HumanoidRootPart.Position
         hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 2), pos)
         warn("[INFO] Téléporté vers le boss :", boss.Name)
     else
-        warn("[WARN] Boss invalide.")
+        warn("[WARN] Boss invalide ou HumanoidRootPart manquant.")
     end
+end
+
 end
 
 -- Boucle AutoFarm
