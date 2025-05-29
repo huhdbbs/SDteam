@@ -1,15 +1,16 @@
--- Chargement de Fluent UI
+-- Chargement Fluent UI
 local FluentUrl = "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
 local success, FluentOrError = pcall(loadstring(game:HttpGet(FluentUrl)))
-
 if not success or type(FluentOrError) ~= "table" then
     warn("[ERREUR] Échec du chargement de Fluent UI :", FluentOrError)
     return
 end
 local Fluent = FluentOrError
 
+-- Services Roblox
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local autoFarm = false
@@ -36,18 +37,19 @@ local Tabs = {
     Misc = Window:AddTab({ Title = "Misc", Icon = "cog" })
 }
 
--- Liste des quêtes
+-- Exemple liste des quêtes (à compléter selon ton jeu)
 local Quests = {
     {
         Name = "Kill 4 Soldiers",
-        BossName = "Soldier [Lv. 1]",
+        BossName = "Soldier Lv. 1",
         Amount = 4,
         Rewards = { exp = 350, beli = 100 },
         Level = 0
-    }
+    },
+    -- ajoute ici tes quêtes supplémentaires
 }
 
--- Utilitaires
+-- Récupérer niveau joueur
 local function getLevel()
     local stats = player:FindFirstChild("PlayerStats")
     if stats and stats:FindFirstChild("lvl") then
@@ -59,6 +61,7 @@ local function getLevel()
     return 0
 end
 
+-- Trouver la meilleure quête disponible selon niveau
 local function getBestQuest()
     local lvl = getLevel()
     local bestQuest
@@ -75,6 +78,7 @@ local function getBestQuest()
     return bestQuest
 end
 
+-- Prendre une quête via Remote
 local function takeQuest(name)
     warn("[INFO] Prise de quête :", name)
     local success, err = pcall(function()
@@ -87,6 +91,7 @@ local function takeQuest(name)
     end
 end
 
+-- Fonction très détaillée pour trouver boss dans workspace.Monster.{Boss,Mon}
 local function findBoss(name)
     local found = {}
     print("[DEBUG] Recherche du boss :", name)
@@ -97,25 +102,47 @@ local function findBoss(name)
         return found
     end
 
+    -- DEBUG : lister le contenu des dossiers Boss et Mon pour confirmer la présence des boss
     for _, subFolderName in ipairs({ "Boss", "Mon" }) do
         local subFolder = monsterFolder:FindFirstChild(subFolderName)
-        if subFolder then
-            print("🔎 Recherche dans dossier :", subFolderName)
+        if not subFolder then
+            warn("❌ Dossier '" .. subFolderName .. "' introuvable dans Monster")
+        else
+            print("📂 Contenu du dossier '" .. subFolderName .. "' :")
             for _, model in ipairs(subFolder:GetChildren()) do
                 if model:IsA("Model") then
                     print(" - Modèle trouvé :", model.Name)
-                    if model.Name:lower() == name:lower() then
-                        if model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
-                            print("✅ Boss correspondant trouvé :", model.Name)
-                            table.insert(found, model)
-                        else
-                            warn("⚠️ Boss trouvé mais manque HRP ou Humanoid :", model.Name)
-                        end
+                    if model:FindFirstChild("HumanoidRootPart") then
+                        print("    -> HumanoidRootPart OK")
+                    else
+                        warn("    -> HumanoidRootPart manquant")
+                    end
+                    if model:FindFirstChild("Humanoid") then
+                        print("    -> Humanoid OK")
+                    else
+                        warn("    -> Humanoid manquant")
+                    end
+                else
+                    print(" - Non Modèle :", model.Name, "Type :", model.ClassName)
+                end
+            end
+        end
+    end
+
+    -- Recherche du boss précis (par nom exact)
+    for _, subFolderName in ipairs({ "Boss", "Mon" }) do
+        local subFolder = monsterFolder:FindFirstChild(subFolderName)
+        if subFolder then
+            for _, model in ipairs(subFolder:GetChildren()) do
+                if model:IsA("Model") and model.Name == name then
+                    if model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
+                        print("✅ Boss correspondant trouvé :", model.Name)
+                        table.insert(found, model)
+                    else
+                        warn("⚠️ Boss trouvé mais manque HRP ou Humanoid :", model.Name)
                     end
                 end
             end
-        else
-            print("📁 Dossier absent :", subFolderName)
         end
     end
 
@@ -125,7 +152,6 @@ local function findBoss(name)
 
     return found
 end
-
 
 local function GetBossModel(name)
     local bosses = findBoss(name)
@@ -163,7 +189,7 @@ local function TeleportToBossOnce(bossName)
     end
 end
 
--- Boucle AutoFarm mise à jour
+-- Boucle AutoFarm
 task.spawn(function()
     while true do
         if autoFarm then
@@ -197,13 +223,15 @@ task.spawn(function()
                         warn("[WARN] Quête inconnue :", questName)
                     end
                 end
+            else
+                warn("[WARN] PlayerStats non trouvés.")
             end
         end
         task.wait(0.5)
     end
 end)
 
--- Toggle AutoFarm
+-- Toggle UI pour autoFarm
 local successToggle, err = pcall(function()
     Tabs.Main:AddToggle("AutoFarm", {
         Title = "Auto Farm LVL",
