@@ -40,7 +40,7 @@ local Tabs = {
 local Quests = {
     {
         Name = "Kill 4 Soldiers",
-        BossName = "Soldier Lv. 1",
+        BossName = "Soldier [Lv. 1]",
         Amount = 4,
         Rewards = { exp = 350, beli = 100 },
         Level = 0
@@ -104,7 +104,7 @@ local function findBoss(name)
             for _, model in ipairs(subFolder:GetChildren()) do
                 if model:IsA("Model") then
                     print(" - Modèle trouvé :", model.Name)
-                    if model.Name == name then
+                    if model.Name:lower() == name:lower() then
                         if model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
                             print("✅ Boss correspondant trouvé :", model.Name)
                             table.insert(found, model)
@@ -125,6 +125,7 @@ local function findBoss(name)
 
     return found
 end
+
 
 local function GetBossModel(name)
     local bosses = findBoss(name)
