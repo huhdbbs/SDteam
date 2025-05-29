@@ -24,13 +24,6 @@ local Quests = {
         Rewards = { exp = 350, beli = 100 },
         Level = 0
     },
-    {
-        Name = "Kill 6 Soldiers",
-        BossName = "Soldier Lv. 2",
-        Amount = 6,
-        Rewards = { exp = 500, beli = 200 },
-        Level = 10
-    },
     -- Ajoute tes quêtes ici...
 }
 
