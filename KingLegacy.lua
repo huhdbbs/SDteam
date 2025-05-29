@@ -12,7 +12,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
-local autoFarm = false -- Déclaration avant usage
+local autoFarm = false
 
 local function getHRP()
     local character = player.Character or player.CharacterAdded:Wait()
@@ -126,7 +126,6 @@ local function findBoss(name)
     return found
 end
 
-
 local function GetBossModel(name)
     local bosses = findBoss(name)
     for _, boss in ipairs(bosses) do
@@ -147,7 +146,6 @@ local function IsBossAlive(name)
     return false
 end
 
--- Nouveau TP une seule fois
 local function TeleportToBossOnce(bossName)
     local character = player.Character or player.CharacterAdded:Wait()
     local hrp = character:FindFirstChild("HumanoidRootPart")
@@ -176,15 +174,19 @@ task.spawn(function()
                     if best then takeQuest(best.Name) end
                 else
                     local questName = currentQuest.Value
+                    print("[DEBUG] Nom de la quête en cours :", questName)
+
                     local questData
                     for _, q in ipairs(Quests) do
-                        if q.Name == questName then
+                        print("[DEBUG] Comparaison de quête :", q.Name, "vs", questName)
+                        if q.Name:lower() == questName:lower() then
                             questData = q
                             break
                         end
                     end
 
                     if questData then
+                        print("[DEBUG] Nom du boss à chercher :", questData.BossName)
                         if IsBossAlive(questData.BossName) then
                             TeleportToBossOnce(questData.BossName)
                         else
@@ -200,8 +202,7 @@ task.spawn(function()
     end
 end)
 
-
--- Ajout du toggle en sécurité
+-- Toggle AutoFarm
 local successToggle, err = pcall(function()
     Tabs.Main:AddToggle("AutoFarm", {
         Title = "Auto Farm LVL",
