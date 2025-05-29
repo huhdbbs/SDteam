@@ -1,5 +1,12 @@
--- Chargement Fluent UI
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- Chargement de Fluent UI
+local FluentUrl = "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
+local success, Fluent = pcall(loadstring(game:HttpGet(FluentUrl)))
+
+if not success then
+    warn("[ERREUR] Échec du chargement de Fluent UI :", Fluent)
+    return
+end
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
@@ -77,8 +84,6 @@ local function takeQuest(name)
     end
 end
 
-
-
 local function GetBossModel(name)
     local bosses = findBoss(name)
     for _, boss in ipairs(bosses) do
@@ -88,7 +93,6 @@ local function GetBossModel(name)
     end
     return nil
 end
-
 
 local function findBoss(name)
     local found = {}
@@ -114,7 +118,6 @@ local function IsBossAlive(name)
     end
     return false
 end
-
 
 local isTeleporting = false
 
@@ -143,7 +146,6 @@ local function TeleportToBossLoop(bossName)
         isTeleporting = false
     end)
 end
-
 
 -- Boucle AutoFarm
 local autoFarm = false
@@ -184,9 +186,6 @@ task.spawn(function()
         task.wait(0.5)
     end
 end)
-
-
-
 
 -- Toggle Fluent UI
 Tabs.Main:AddToggle("AutoFarm", {
