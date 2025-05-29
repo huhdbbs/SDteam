@@ -103,6 +103,8 @@ local function IsBossAlive(name)
 end
 
 
+local isTeleporting = false
+
 local function TeleportToBossLoop(bossName)
     if isTeleporting then return end
     isTeleporting = true
