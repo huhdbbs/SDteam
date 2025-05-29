@@ -108,7 +108,6 @@ local function tpToBoss(boss)
     end
 end
 
-end
 
 -- Boucle AutoFarm
 local autoFarm = false
