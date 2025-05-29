@@ -29,15 +29,17 @@ local Quests = {
         Rewards = { exp = 350, beli = 100 },
         Level = 0
     }
-
 }
 
 -- Utilitaires
 local function getLevel()
     local stats = player:FindFirstChild("PlayerStats")
     if stats and stats:FindFirstChild("lvl") then
-        return stats.lvl.Value
+        local lvl = stats.lvl.Value
+        print("[INFO] Ton niveau actuel est :", lvl)
+        return lvl
     end
+    warn("[WARN] Impossible de trouver le niveau du joueur.")
     return 0
 end
 
@@ -51,17 +53,28 @@ local function getBestQuest()
             end
         end
     end
+    if bestQuest then
+        print("[INFO] Meilleure quête trouvée pour ton niveau :", bestQuest.Name, "(Level requis :", bestQuest.Level .. ")")
+    else
+        warn("[WARN] Aucune quête trouvée pour ton niveau.")
+    end
     return bestQuest
 end
 
 local function takeQuest(questName)
+    print("[INFO] Tentative de prise de quête :", questName)
     local success, err = pcall(function()
         game:GetService("ReplicatedStorage"):WaitForChild("Chest"):WaitForChild("Remotes"):WaitForChild("Functions"):WaitForChild("Quest"):InvokeServer("take", questName)
     end)
-    if not success then warn("Erreur prise de quête :", err) end
+    if success then
+        warn("[SUCCÈS] Quête prise :", questName)
+    else
+        warn("[ERREUR] Échec lors de la prise de quête :", err)
+    end
 end
 
 local function findBoss(name)
+    print("[INFO] Recherche du boss :", name)
     local bosses = {}
     local function scan(folder)
         if folder then
@@ -75,18 +88,20 @@ local function findBoss(name)
     scan(workspace:FindFirstChild("Monster"))
     scan(workspace:FindFirstChild("Boss"))
     scan(workspace:FindFirstChild("Mon"))
+
+    print("[INFO] Nombre de boss trouvés :", #bosses)
     return bosses
 end
 
 local function tpToBoss(boss)
-    local headPos = boss:FindFirstChild("HumanoidRootPart").Position
-    local lookAt = CFrame.new(headPos + Vector3.new(0, 5, 0), headPos)
-    hrp.CFrame = lookAt * CFrame.new(0, 0, 2)
-end
-
-local function currentQuestCompleted()
-    local stats = player:FindFirstChild("PlayerStats")
-    return stats and not stats:FindFirstChild("CurrentQuest")
+    if boss and boss:FindFirstChild("HumanoidRootPart") then
+        local headPos = boss.HumanoidRootPart.Position
+        local lookAt = CFrame.new(headPos + Vector3.new(0, 5, 0), headPos)
+        hrp.CFrame = lookAt * CFrame.new(0, 0, 2)
+        print("[INFO] Téléportation au boss :", boss.Name)
+    else
+        warn("[WARN] Boss invalide ou sans HumanoidRootPart.")
+    end
 end
 
 -- Boucle d’auto-farm
@@ -97,12 +112,15 @@ task.spawn(function()
         if autoFarm then
             local stats = player:FindFirstChild("PlayerStats")
             if stats and not stats:FindFirstChild("CurrentQuest") then
+                print("[INFO] Aucune quête en cours. Recherche de la meilleure quête...")
                 local best = getBestQuest()
                 if best then
                     takeQuest(best.Name)
                 end
             elseif stats and stats:FindFirstChild("CurrentQuest") then
                 local currentQuestName = stats.CurrentQuest.Value
+                print("[INFO] Quête en cours :", currentQuestName)
+
                 local quest = nil
                 for _, q in ipairs(Quests) do
                     if q.Name == currentQuestName then
@@ -115,14 +133,19 @@ task.spawn(function()
                     local bosses = findBoss(quest.BossName)
                     for _, boss in ipairs(bosses) do
                         if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                            print("[INFO] Boss vivant trouvé :", boss.Name, " | PV :", boss.Humanoid.Health)
                             tpToBoss(boss)
                             break
+                        else
+                            warn("[INFO] Boss mort ou invalide :", boss.Name)
                         end
                     end
+                else
+                    warn("[WARN] La quête en cours ne correspond à aucune quête connue.")
                 end
             end
         end
-        task.wait(1)
+        task.wait(0.5)
     end
 end)
 
@@ -132,6 +155,6 @@ Tabs.Main:AddToggle("AutoFarm", {
     Default = false,
     Callback = function(state)
         autoFarm = state
-        print("Auto Farm :", state)
+        warn("[TOGGLE] Auto Farm :", state and "Activé" or "Désactivé")
     end
 })
