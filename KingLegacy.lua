@@ -92,20 +92,41 @@ local function findBoss(name)
     return found
 end
 
-local function getHRP()
-    local char = player.Character or player.CharacterAdded:Wait()
-    return char:FindFirstChild("HumanoidRootPart")
+local function IsBossAlive(name)
+    local bosses = findBoss(name)
+    for _, boss in ipairs(bosses) do
+        if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+            return true
+        end
+    end
+    return false
 end
 
-local function tpToBoss(boss)
-    local hrp = getHRP()
-    if boss and boss:FindFirstChild("HumanoidRootPart") and hrp then
-        local pos = boss.HumanoidRootPart.Position
-        hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 2), pos)
-        warn("[INFO] Téléporté vers le boss :", boss.Name)
-    else
-        warn("[WARN] Boss invalide ou HumanoidRootPart manquant.")
-    end
+
+local function TeleportToBossLoop(bossName)
+    if isTeleporting then return end
+    isTeleporting = true
+
+    task.spawn(function()
+        while autoFarm and IsBossAlive(bossName) do
+            local character = player.Character or player.CharacterAdded:Wait()
+            local hrp = character:FindFirstChild("HumanoidRootPart")
+            local boss = GetBossModel(bossName)
+
+            if boss and boss:FindFirstChild("HumanoidRootPart") and hrp then
+                local bossHRP = boss.HumanoidRootPart
+                local headPos = boss:FindFirstChild("Head") and boss.Head.Position or bossHRP.Position
+                local lookAtCFrame = CFrame.new(headPos + Vector3.new(0, 5, 0), headPos)
+                hrp.CFrame = lookAtCFrame * CFrame.new(0, 0, 2)
+                print("[🌀] TP au-dessus de :", bossName)
+            else
+                warn("[❓] Boss non trouvé ou HRP manquant :", bossName)
+            end
+
+            task.wait(0.1)
+        end
+        isTeleporting = false
+    end)
 end
 
 
@@ -135,7 +156,7 @@ task.spawn(function()
                         local bosses = findBoss(questData.BossName)
                         for _, boss in ipairs(bosses) do
                             if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                                tpToBoss(boss)
+                                TeleportToBossLoop(boss.Name)
                                 break
                             end
                         end
