@@ -87,6 +87,7 @@ local function takeQuest(name)
     end
 end
 
+-- Trouver le boss dans Monster > Boss et Monster > Mon
 local function findBoss(name)
     local found = {}
     print("[DEBUG] Recherche boss:", name)
@@ -97,9 +98,8 @@ local function findBoss(name)
             local subFolder = monsterFolder:FindFirstChild(subFolderName)
             if subFolder then
                 for _, model in ipairs(subFolder:GetChildren()) do
-                    print("→ Trouvé modèle:", model.Name)
                     if model:IsA("Model") and model.Name == name and model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
-                        print("✅ Match trouvé:", model.Name)
+                        print("✅ Boss trouvé dans :", subFolderName, "→", model.Name)
                         table.insert(found, model)
                     end
                 end
@@ -111,7 +111,6 @@ local function findBoss(name)
 
     return found
 end
-
 
 local function GetBossModel(name)
     local bosses = findBoss(name)
@@ -133,35 +132,24 @@ local function IsBossAlive(name)
     return false
 end
 
-local isTeleporting = false
+-- Nouveau TP une seule fois
+local function TeleportToBossOnce(bossName)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    local boss = GetBossModel(bossName)
 
-local function TeleportToBossLoop(bossName)
-    if isTeleporting then return end
-    isTeleporting = true
-
-    task.spawn(function()
-        while autoFarm and IsBossAlive(bossName) do
-            local character = player.Character or player.CharacterAdded:Wait()
-            local hrp = character:FindFirstChild("HumanoidRootPart")
-            local boss = GetBossModel(bossName)
-
-            if boss and boss:FindFirstChild("HumanoidRootPart") and hrp then
-                local bossHRP = boss.HumanoidRootPart
-                local headPos = boss:FindFirstChild("Head") and boss.Head.Position or bossHRP.Position
-                local lookAtCFrame = CFrame.new(headPos + Vector3.new(0, 5, 0), headPos)
-                hrp.CFrame = lookAtCFrame * CFrame.new(0, 0, 2)
-                print("[🌀] TP au-dessus de :", bossName)
-            else
-                warn("[❓] Boss non trouvé ou HRP manquant :", bossName)
-            end
-
-            task.wait(0.1) -- petit wait pour ne pas spammer le serveur
-        end
-        isTeleporting = false
-    end)
+    if boss and boss:FindFirstChild("HumanoidRootPart") and hrp then
+        local bossHRP = boss.HumanoidRootPart
+        local headPos = boss:FindFirstChild("Head") and boss.Head.Position or bossHRP.Position
+        local lookAtCFrame = CFrame.new(headPos + Vector3.new(0, 5, 0), headPos)
+        hrp.CFrame = lookAtCFrame * CFrame.new(0, 0, 2)
+        print("[🌀] TP au-dessus de :", bossName)
+    else
+        warn("[❓] Boss non trouvé ou HRP manquant :", bossName)
+    end
 end
 
--- Boucle AutoFarm
+-- Boucle AutoFarm mise à jour
 task.spawn(function()
     while true do
         if autoFarm then
@@ -182,12 +170,10 @@ task.spawn(function()
                     end
 
                     if questData then
-                        local bosses = findBoss(questData.BossName)
-                        for _, boss in ipairs(bosses) do
-                            if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                                TTeleportToBossLoop(questData.BossName)
-                                break
-                            end
+                        if IsBossAlive(questData.BossName) then
+                            TeleportToBossOnce(questData.BossName)
+                        else
+                            print("[⏳] Boss pas encore spawné :", questData.BossName)
                         end
                     else
                         warn("[WARN] Quête inconnue :", questName)
@@ -198,6 +184,7 @@ task.spawn(function()
         task.wait(0.5)
     end
 end)
+
 
 -- Ajout du toggle en sécurité
 local successToggle, err = pcall(function()
