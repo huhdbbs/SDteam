@@ -17,5 +17,5 @@ local Tabs = {
     Info = Window:AddTab({ Title = "Info", Icon = "info" }),
     Main = Window:AddTab({ Title = "Main", Icon = "circle-ellipsis" }),
     Sea = Window:AddTab({ Title = "Sea", Icon = "waves" }),
-    Settings = Window:AddTab({ Title = "Misc", Icon = "sliders-horizontal" })
+    Misc = Window:AddTab({ Title = "Misc", Icon = "cog" })
 }
