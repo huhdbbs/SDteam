@@ -105,49 +105,69 @@ local function tpToBoss(boss)
 end
 
 -- Boucle d’auto-farm
-local autoFarm = false
-
 task.spawn(function()
     while true do
         if autoFarm then
             local stats = player:FindFirstChild("PlayerStats")
-            if stats and not stats:FindFirstChild("CurrentQuest") then
-                print("[INFO] Aucune quête en cours. Recherche de la meilleure quête...")
-                local best = getBestQuest()
-                if best then
-                    takeQuest(best.Name)
-                end
-            elseif stats and stats:FindFirstChild("CurrentQuest") then
-                local currentQuestName = stats.CurrentQuest.Value
-                print("[INFO] Quête en cours :", currentQuestName)
 
-                local quest = nil
-                for _, q in ipairs(Quests) do
-                    if q.Name == currentQuestName then
-                        quest = q
-                        break
-                    end
-                end
+            if stats then
+                local currentQuest = stats:FindFirstChild("CurrentQuest")
 
-                if quest then
-                    local bosses = findBoss(quest.BossName)
-                    for _, boss in ipairs(bosses) do
-                        if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-                            print("[INFO] Boss vivant trouvé :", boss.Name, " | PV :", boss.Humanoid.Health)
-                            tpToBoss(boss)
-                            break
-                        else
-                            warn("[INFO] Boss mort ou invalide :", boss.Name)
-                        end
+                if not currentQuest then
+                    print("[INFO] Aucune quête active. Tentative de prise de la meilleure quête...")
+                    local best = getBestQuest()
+                    if best then
+                        takeQuest(best.Name)
                     end
                 else
-                    warn("[WARN] La quête en cours ne correspond à aucune quête connue.")
+                    local currentQuestName = currentQuest.Value
+                    print("[INFO] Quête actuellement active :", currentQuestName)
+
+                    local quest = nil
+                    for _, q in ipairs(Quests) do
+                        if q.Name == currentQuestName then
+                            quest = q
+                            break
+                        end
+                    end
+
+                    if quest then
+                        local bossName = quest.BossName
+                        print("[INFO] Recherche du boss correspondant à la quête :", bossName)
+
+                        local bosses = findBoss(bossName)
+
+                        if #bosses == 0 then
+                            warn("[WARN] Aucun boss trouvé pour :", bossName)
+                        else
+                            local foundAlive = false
+                            for _, boss in ipairs(bosses) do
+                                if boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                                    print("[INFO] Boss vivant trouvé :", boss.Name, "- HP:", boss.Humanoid.Health)
+                                    tpToBoss(boss)
+                                    foundAlive = true
+                                    break
+                                else
+                                    warn("[INFO] Boss trouvé mais mort ou invalide :", boss.Name)
+                                end
+                            end
+
+                            if not foundAlive then
+                                warn("[INFO] Aucun boss vivant trouvé pour :", bossName)
+                            end
+                        end
+                    else
+                        warn("[WARN] Impossible de retrouver la quête dans la liste locale :", currentQuestName)
+                    end
                 end
+            else
+                warn("[WARN] Statistiques du joueur non trouvées.")
             end
         end
         task.wait(0.5)
     end
 end)
+
 
 -- Toggle Fluent
 Tabs.Main:AddToggle("AutoFarm", {
