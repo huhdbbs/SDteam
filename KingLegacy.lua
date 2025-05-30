@@ -1,13 +1,4 @@
--- Chargement Fluent UI
-local FluentUrl = "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
-print("[INIT] Chargement de Fluent UI...")
-local success, FluentOrError = pcall(loadstring(game:HttpGet(FluentUrl)))
-if not success or type(FluentOrError) ~= "table" then
-    warn("[ERREUR] Échec du chargement de Fluent UI :", FluentOrError)
-    return
-end
-local Fluent = FluentOrError
-print("[INIT] Fluent UI chargé avec succès")
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 -- Services Roblox
 local Players = game:GetService("Players")
