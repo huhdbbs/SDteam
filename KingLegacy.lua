@@ -60,11 +60,11 @@ local function takeQuest(name)
     end
 end
 
-local function findBoss(name)
+local function findAllBosses(name)
+    local bosses = {}
     local monsterFolder = workspace:FindFirstChild("Monster")
     if not monsterFolder then
-        warn("[findBoss] Pas de dossier Monster")
-        return nil
+        return bosses
     end
 
     for _, folderName in ipairs({ "Boss", "Mon" }) do
@@ -73,32 +73,29 @@ local function findBoss(name)
             for _, model in ipairs(folder:GetChildren()) do
                 if model:IsA("Model") and model.Name == name then
                     if model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
-                        warn("[findBoss] Boss trouvé :", name)
-                        return model
+                        table.insert(bosses, model)
                     end
                 end
             end
         end
     end
-    warn("[findBoss] Boss non trouvé :", name)
-    return nil
+
+    return bosses
 end
 
-local function isBossAlive(name)
-    local boss = findBoss(name)
-    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
-        warn("[isBossAlive] Boss est vivant :", name)
-        return true
-    else
-        warn("[isBossAlive] Boss mort ou introuvable :", name)
-        return false
+
+local function getAliveBosses(name)
+    local bosses = findAllBosses(name)
+    local alive = {}
+    for _, boss in ipairs(bosses) do
+        if boss.Humanoid.Health > 0 then
+            table.insert(alive, boss)
+        end
     end
+    return alive
 end
 
-
-
-
-local function teleportToBoss(bossName)
+local function teleportAndTrackBosses(bossName)
     local character = player.Character or player.CharacterAdded:Wait()
     local hrp = character:FindFirstChild("HumanoidRootPart")
 
@@ -107,24 +104,38 @@ local function teleportToBoss(bossName)
         return
     end
 
-    local boss = findBoss(bossName)
-    if not boss then
-        warn("[TP BOSS] Boss introuvable :", bossName)
-        return
+    while true do
+        local aliveBosses = getAliveBosses(bossName)
+
+        if #aliveBosses == 0 then
+            warn("[TP BOSS] Aucun boss vivant trouvé pour :", bossName)
+            break
+        end
+
+        -- On prend le premier boss vivant (tu peux modifier pour prendre un autre si tu veux)
+        local boss = aliveBosses[1]
+        local bossHRP = boss:FindFirstChild("HumanoidRootPart")
+        if not bossHRP then
+            warn("[TP BOSS] Boss sans HumanoidRootPart :", bossName)
+            -- Enlever ce boss de la liste et continuer
+            table.remove(aliveBosses, 1)
+            continue
+        end
+
+        -- Teleport initial
+        hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0)
+        warn("[TP BOSS] Téléporté sur boss :", bossName, "Position :", tostring(hrp.Position))
+
+        -- Tant que boss est vivant, on reste dessus et spam la position
+        while boss.Humanoid.Health > 0 do
+            hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0) -- Update position au cas où boss bouge
+            warn("[TP BOSS] Suivi boss :", bossName, "Position :", tostring(hrp.Position))
+            task.wait(0.3)
+        end
+
+        warn("[TP BOSS] Boss mort, passage au suivant :", bossName)
+        -- Boucle continue et reprendra avec le boss suivant vivant
     end
-
-    local bossHRP = boss:FindFirstChild("HumanoidRootPart")
-    if not bossHRP then
-        warn("[TP BOSS] Pas de HumanoidRootPart sur le boss :", bossName)
-        return
-    end
-
-    warn("[TP BOSS] Avant téléportation, joueur HRP CFrame :", hrp.CFrame)
-    warn("[TP BOSS] Position boss :", bossHRP.CFrame)
-
-    hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0)
-
-    warn("[TP BOSS] Téléporté au boss :", bossName)
 end
 
 
@@ -152,17 +163,17 @@ task.spawn(function()
                         end
                     end
 
-                    if questData then
-                        warn("[AUTO FARM] Quest Data trouvée :", questData.Name, questData.BossName)
-                        if isBossAlive(questData.BossName) then
-                            warn("[AUTO FARM] Tentative de TP au boss :", questData.BossName)
-                            teleportToBoss(questData.BossName)
-                        else
-                            warn("[AUTO FARM] Boss pas encore spawné :", questData.BossName)
-                        end
-                    else
-                        warn("[AUTO FARM] Quête inconnue :", questName)
-                    end
+if questData then
+    if isAnyBossAlive(questData.BossName) then
+        warn("[AUTO FARM] Boss(s) vivant(s), début téléportation et suivi :", questData.BossName)
+        teleportAndTrackBosses(questData.BossName)
+    else
+        warn("[AUTO FARM] Boss pas encore spawné :", questData.BossName)
+    end
+else
+    warn("[AUTO FARM] Quête inconnue :", questName)
+end
+
                 end
             end
         end
