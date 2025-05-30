@@ -97,6 +97,7 @@ end
 
 
 
+
 local function teleportToBoss(bossName)
     local character = player.Character or player.CharacterAdded:Wait()
     local hrp = character:FindFirstChild("HumanoidRootPart")
@@ -127,29 +128,21 @@ local function teleportToBoss(bossName)
 end
 
 
--- Boucle AutoFarm
 task.spawn(function()
     while true do
         if autoFarm then
             local stats = player:FindFirstChild("PlayerStats")
             if stats then
                 local currentQuest = stats:FindFirstChild("CurrentQuest")
-if not currentQuest or currentQuest.Value == "" then
-    local best = getBestQuest()
-    if best then
-        takeQuest(best.Name)
-        warn("[AUTO FARM] Quête prise :", best.Name)
-
-        -- ✅ Attente jusqu’à ce que la quête soit bien prise
-        repeat
-            task.wait(0.2)
-            currentQuest = stats:FindFirstChild("CurrentQuest")
-        until currentQuest and currentQuest.Value ~= ""
-    end
-
+                if not currentQuest or currentQuest.Value == "" then
+                    local best = getBestQuest()
+                    if best then
+                        takeQuest(best.Name)
+                        warn("[AUTO FARM] Quête prise :", best.Name)
+                    end
                 else
                     local questName = currentQuest.Value
-                    warn("[AUTO FARM] Quête en cours :", questName)
+                    warn("[AUTO FARM] Current Quest :", questName)
 
                     local questData = nil
                     for _, q in ipairs(Quests) do
@@ -160,9 +153,9 @@ if not currentQuest or currentQuest.Value == "" then
                     end
 
                     if questData then
-                        warn("[AUTO FARM] Boss de la quête :", questData.BossName)
+                        warn("[AUTO FARM] Quest Data trouvée :", questData.Name, questData.BossName)
                         if isBossAlive(questData.BossName) then
-                            warn("[AUTO FARM] Boss est vivant, on tente TP :", questData.BossName)
+                            warn("[AUTO FARM] Tentative de TP au boss :", questData.BossName)
                             teleportToBoss(questData.BossName)
                         else
                             warn("[AUTO FARM] Boss pas encore spawné :", questData.BossName)
@@ -176,6 +169,7 @@ if not currentQuest or currentQuest.Value == "" then
         task.wait(0.5)
     end
 end)
+
 
 
 -- Création de la fenêtre UI
