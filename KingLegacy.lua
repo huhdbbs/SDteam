@@ -1,4 +1,13 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- Chargement Fluent UI correctement
+local success, FluentOrError = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+end)
+
+if not success or type(FluentOrError) ~= "table" then
+    warn("[ERREUR] Échec du chargement de Fluent UI :", FluentOrError)
+    return
+end
+local Fluent = FluentOrError
 
 -- Services Roblox
 local Players = game:GetService("Players")
@@ -9,7 +18,7 @@ local player = Players.LocalPlayer
 local autoFarm = false
 local currentBoss = nil
 
--- Liste des quêtes (exemple, à adapter selon ton jeu)
+-- Liste des quêtes (exemple, à adapter)
 local Quests = {
     {
         Name = "Kill 4 Soldiers",
