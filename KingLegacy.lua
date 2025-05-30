@@ -12,13 +12,13 @@ local Fluent = FluentOrError
 -- Services Roblox
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local workspace = game:GetService("Workspace")
+local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local autoFarm = false
 local currentBoss = nil
 
--- Liste des quêtes (exemple, à adapter)
+-- Liste des quêtes (exemple, adapte selon ton jeu)
 local Quests = {
     {
         Name = "Kill 4 Soldiers",
@@ -27,23 +27,25 @@ local Quests = {
         Rewards = { exp = 350, beli = 100 },
         Level = 0
     },
-    -- Ajoute tes quêtes ici...
+    -- Ajoute ici tes quêtes supplémentaires
 }
 
--- Récupérer niveau joueur
+-- Fonction pour récupérer le niveau du joueur
 local function getLevel()
     print("[DEBUG] getLevel appelé")
     local stats = player:FindFirstChild("PlayerStats")
-    if stats and stats:FindFirstChild("lvl") then
-        print("[DEBUG] Niveau trouvé :", stats.lvl.Value)
-        return stats.lvl.Value
-    else
-        warn("[WARN] PlayerStats ou lvl non trouvé")
+    if stats then
+        local lvl = stats:FindFirstChild("lvl")
+        if lvl then
+            print("[DEBUG] Niveau trouvé :", lvl.Value)
+            return lvl.Value
+        end
     end
+    warn("[WARN] PlayerStats ou lvl non trouvé")
     return 0
 end
 
--- Trouver la meilleure quête disponible selon niveau
+-- Trouver la meilleure quête disponible selon le niveau du joueur
 local function getBestQuest()
     print("[DEBUG] getBestQuest appelé")
     local lvl = getLevel()
@@ -79,10 +81,11 @@ local function takeQuest(name)
     end
 end
 
+-- Trouver tous les boss avec un nom donné
 local function findAllBosses(name)
     print("[DEBUG] Recherche de tous les boss nommés :", name)
     local bosses = {}
-    local monsterFolder = workspace:FindFirstChild("Monster")
+    local monsterFolder = Workspace:FindFirstChild("Monster")
     if not monsterFolder then
         warn("[WARN] Dossier Monster introuvable")
         return bosses
@@ -110,6 +113,7 @@ local function findAllBosses(name)
     return bosses
 end
 
+-- Filtrer les boss vivants
 local function getAliveBosses(name)
     local bosses = findAllBosses(name)
     local alive = {}
@@ -171,7 +175,7 @@ task.spawn(function()
                 print("[AUTO FARM] Boss vivants trouvés pour '" .. questData.BossName .. "' :", #aliveBosses)
 
                 if #aliveBosses > 0 then
-                    if not currentBoss or currentBoss.Humanoid.Health <= 0 then
+                    if not currentBoss or not currentBoss.Parent or not currentBoss:FindFirstChild("Humanoid") or currentBoss.Humanoid.Health <= 0 then
                         currentBoss = aliveBosses[1]
                         print("[AUTO FARM] Nouveau boss suivi :", currentBoss.Name)
                     end
@@ -211,7 +215,7 @@ task.spawn(function()
     end
 end)
 
--- Création de la fenêtre UI
+-- Création de la fenêtre UI avec Fluent
 print("[INIT] Création de l'interface utilisateur")
 local Window = Fluent:CreateWindow({
     Title = "King Legacy",
@@ -230,6 +234,7 @@ local Tabs = {
     Misc = Window:AddTab({ Title = "Misc", Icon = "cog" }),
 }
 
+-- Toggle AutoFarm dans l'onglet Main
 Tabs.Main:AddToggle("AutoFarm", {
     Title = "Auto Farm LVL",
     Default = false,
