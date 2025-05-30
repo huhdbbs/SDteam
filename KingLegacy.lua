@@ -179,13 +179,7 @@ local function GetCurrentQuestName()
         return nil
     end
 
-    local playerStats = player:FindFirstChild("PlayerStats")
-    if not playerStats then
-        warn("[❌] PlayerStats non trouvé.")
-        return nil
-    end
-
-    local currentQuest = playerStats:FindFirstChild("CurrentQuest")
+    local currentQuest = player:FindFirstChild("CurrentQuest")
     if currentQuest then
         if currentQuest:IsA("StringValue") then
             return currentQuest.Value ~= "" and currentQuest.Value or nil
