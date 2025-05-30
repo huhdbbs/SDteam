@@ -1,50 +1,24 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local success, FluentOrError = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+end)
+
+if not success or type(FluentOrError) ~= "table" then
+    warn("[ERREUR] Échec du chargement de Fluent UI :", FluentOrError)
+    return
+end
+
+local Fluent = FluentOrError
 
 -- Services Roblox
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
+local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
-
-
-
--- Création de la fenêtre UI avec Fluent
-print("[INIT] Création de l'interface utilisateur")
-local Window = Fluent:CreateWindow({
-    Title = "King Legacy",
-    SubTitle = "SD Team",
-    TabWidth = 100,
-    Size = UDim2.fromOffset(480, 300),
-    Acrylic = false,
-    Theme = "Darker",
-    MinimizeKey = Enum.KeyCode.RightControl
-})
-
-local Tabs = {
-    Info = Window:AddTab({ Title = "Info", Icon = "info" }),
-    Main = Window:AddTab({ Title = "Main", Icon = "circle-ellipsis" }),
-    Sea = Window:AddTab({ Title = "Sea", Icon = "waves" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "cog" }),
-}
-
--- Toggle AutoFarm dans l'onglet Main
-Tabs.Main:AddToggle("AutoFarm", {
-    Title = "Auto Farm LVL",
-    Default = false,
-    Callback = function(state)
-        autoFarm = state
-        warn("[TOGGLE] Auto Farm", state and "Activé" or "Désactivé")
-    end
-})
-
-print("[INIT] Script chargé et prêt")
-
-
 
 local autoFarm = false
 local currentBoss = nil
 
--- Liste des quêtes (exemple, adapte selon ton jeu)
+-- Liste des quêtes (exemple, à adapter)
 local Quests = {
     {
         Name = "Kill 4 Soldiers",
@@ -53,25 +27,23 @@ local Quests = {
         Rewards = { exp = 350, beli = 100 },
         Level = 0
     },
-    -- Ajoute ici tes quêtes supplémentaires
+    -- Ajoute tes quêtes ici...
 }
 
--- Fonction pour récupérer le niveau du joueur
+-- Récupérer niveau joueur
 local function getLevel()
     print("[DEBUG] getLevel appelé")
     local stats = player:FindFirstChild("PlayerStats")
-    if stats then
-        local lvl = stats:FindFirstChild("lvl")
-        if lvl then
-            print("[DEBUG] Niveau trouvé :", lvl.Value)
-            return lvl.Value
-        end
+    if stats and stats:FindFirstChild("lvl") then
+        print("[DEBUG] Niveau trouvé :", stats.lvl.Value)
+        return stats.lvl.Value
+    else
+        warn("[WARN] PlayerStats ou lvl non trouvé")
     end
-    warn("[WARN] PlayerStats ou lvl non trouvé")
     return 0
 end
 
--- Trouver la meilleure quête disponible selon le niveau du joueur
+-- Trouver la meilleure quête disponible selon niveau
 local function getBestQuest()
     print("[DEBUG] getBestQuest appelé")
     local lvl = getLevel()
@@ -107,11 +79,10 @@ local function takeQuest(name)
     end
 end
 
--- Trouver tous les boss avec un nom donné
 local function findAllBosses(name)
     print("[DEBUG] Recherche de tous les boss nommés :", name)
     local bosses = {}
-    local monsterFolder = Workspace:FindFirstChild("Monster")
+    local monsterFolder = workspace:FindFirstChild("Monster")
     if not monsterFolder then
         warn("[WARN] Dossier Monster introuvable")
         return bosses
@@ -139,7 +110,6 @@ local function findAllBosses(name)
     return bosses
 end
 
--- Filtrer les boss vivants
 local function getAliveBosses(name)
     local bosses = findAllBosses(name)
     local alive = {}
@@ -201,7 +171,7 @@ task.spawn(function()
                 print("[AUTO FARM] Boss vivants trouvés pour '" .. questData.BossName .. "' :", #aliveBosses)
 
                 if #aliveBosses > 0 then
-                    if not currentBoss or not currentBoss.Parent or not currentBoss:FindFirstChild("Humanoid") or currentBoss.Humanoid.Health <= 0 then
+                    if not currentBoss or currentBoss.Humanoid.Health <= 0 then
                         currentBoss = aliveBosses[1]
                         print("[AUTO FARM] Nouveau boss suivi :", currentBoss.Name)
                     end
@@ -241,4 +211,32 @@ task.spawn(function()
     end
 end)
 
+-- Création de la fenêtre UI
+print("[INIT] Création de l'interface utilisateur")
+local Window = Fluent:CreateWindow({
+    Title = "King Legacy",
+    SubTitle = "SD Team",
+    TabWidth = 100,
+    Size = UDim2.fromOffset(480, 300),
+    Acrylic = false,
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
 
+local Tabs = {
+    Info = Window:AddTab({ Title = "Info", Icon = "info" }),
+    Main = Window:AddTab({ Title = "Main", Icon = "circle-ellipsis" }),
+    Sea = Window:AddTab({ Title = "Sea", Icon = "waves" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "cog" }),
+}
+
+Tabs.Main:AddToggle("AutoFarm", {
+    Title = "Auto Farm LVL",
+    Default = false,
+    Callback = function(state)
+        autoFarm = state
+        warn("[TOGGLE] Auto Farm", state and "Activé" or "Désactivé")
+    end
+})
+
+print("[INIT] Script chargé et prêt")
