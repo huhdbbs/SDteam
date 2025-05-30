@@ -85,15 +85,15 @@ print("🚀 Le bouton est prêt ! Clique sur le logo pour minimiser Fluent UI")
 
 -- 🗺️ Définition des quêtes
 local Quests = {   
-    { Name = "Kill 4 Soldiers", BossName = "Soldier Lv. 1", Amount = 4, BossFolder = "Mon", Rewards = { exp = 350, beli = 100 }, Level = 0 },
-    { Name = "Kill 5 Clown Pirates", BossName = "Clown Pirate Lv. 10", Amount = 5, BossFolder = "Mon", Rewards = { exp = 1400, beli = 150 }, Level = 10 },
-    { Name = "Kill 1 Smoky", BossName = "Smoky Lv. 20", Amount = 1, BossFolder = "Boss", Rewards = { exp = 3150, beli = 250 }, Level = 20 },
-    { Name = "Kill 1 Tashi", BossName = "Tashi Lv. 30", Amount = 1, BossFolder = "Boss", Rewards = { exp = 8750, beli = 500 }, Level = 30 },
-    { Name = "Kill 6 Clown Swordman", BossName = "Clown Swordman Lv. 50", Amount = 6, BossFolder = "Mon", Rewards = { exp = 19687.5, beli = 750 }, Level = 50 },
-    { Name = "Kill 1 The Clown", BossName = "The Clown Lv. 75", Amount = 1, BossFolder = "Boss", Rewards = { exp = 35000, beli = 1000 }, Level = 75 },
-    { Name = "Kill 4 Commander", BossName = "Commander Lv. 100", Amount = 4, Rewards = { exp = 50400, beli = 1250 }, Level = 100 },
-    { Name = "Kill 1 Captain", BossName = "Captain Lv. 120", Amount = 1, BossFolder = "Boss", Rewards = { exp = 73587.5, beli = 1500 }, Level = 120 },
-    { Name = "Kill 1 The Barbaric", BossName = "The Barbaric Lv. 145", Amount = 1, BossFolder = "Boss", Rewards = { exp = 113400, beli = 2000 }, Level = 145 },
+    { Name = "Kill 4 Soldiers", BossName = "Soldier [Lv. 1]", Amount = 4, BossFolder = "Mon", Rewards = { exp = 350, beli = 100 }, Level = 0 },
+    { Name = "Kill 5 Clown Pirates", BossName = "Clown Pirate [Lv. 10]", Amount = 5, BossFolder = "Mon", Rewards = { exp = 1400, beli = 150 }, Level = 10 },
+    { Name = "Kill 1 Smoky", BossName = "Smoky [Lv. 20]", Amount = 1, BossFolder = "Boss", Rewards = { exp = 3150, beli = 250 }, Level = 20 },
+    { Name = "Kill 1 Tashi", BossName = "Tashi [Lv. 30]", Amount = 1, BossFolder = "Boss", Rewards = { exp = 8750, beli = 500 }, Level = 30 },
+    { Name = "Kill 6 Clown Swordman", BossName = "Clown Swordman [Lv. 50]", Amount = 6, BossFolder = "Mon", Rewards = { exp = 19687.5, beli = 750 }, Level = 50 },
+    { Name = "Kill 1 The Clown", BossName = "The Clown [Lv. 75]", Amount = 1, BossFolder = "Boss", Rewards = { exp = 35000, beli = 1000 }, Level = 75 },
+    { Name = "Kill 4 Commander", BossName = "Commander [Lv. 100]", Amount = 4, Rewards = { exp = 50400, beli = 1250 }, Level = 100 },
+    { Name = "Kill 1 Captain", BossName = "Captain [Lv. 120]", Amount = 1, BossFolder = "Boss", Rewards = { exp = 73587.5, beli = 1500 }, Level = 120 },
+    { Name = "Kill 1 The Barbaric", BossName = "The Barbaric [Lv. 145]", Amount = 1, BossFolder = "Boss", Rewards = { exp = 113400, beli = 2000 }, Level = 145 },
 }
 
 -- Function Definitions
