@@ -60,10 +60,10 @@ local function takeQuest(name)
     end
 end
 
--- Trouver boss dans workspace.Monster.{Boss,Mon}
 local function findBoss(name)
     local monsterFolder = workspace:FindFirstChild("Monster")
     if not monsterFolder then
+        warn("[findBoss] Pas de dossier Monster")
         return nil
     end
 
@@ -73,22 +73,29 @@ local function findBoss(name)
             for _, model in ipairs(folder:GetChildren()) do
                 if model:IsA("Model") and model.Name == name then
                     if model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
+                        warn("[findBoss] Boss trouvé :", name)
                         return model
                     end
                 end
             end
         end
     end
+    warn("[findBoss] Boss non trouvé :", name)
     return nil
 end
 
 local function isBossAlive(name)
     local boss = findBoss(name)
-    if boss and boss.Humanoid.Health > 0 then
+    if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+        warn("[isBossAlive] Boss est vivant :", name)
         return true
+    else
+        warn("[isBossAlive] Boss mort ou introuvable :", name)
+        return false
     end
-    return false
 end
+
+
 
 local function teleportToBoss(bossName)
     local character = player.Character or player.CharacterAdded:Wait()
@@ -111,7 +118,11 @@ local function teleportToBoss(bossName)
         return
     end
 
+    warn("[TP BOSS] Avant téléportation, joueur HRP CFrame :", hrp.CFrame)
+    warn("[TP BOSS] Position boss :", bossHRP.CFrame)
+
     hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0)
+
     warn("[TP BOSS] Téléporté au boss :", bossName)
 end
 
