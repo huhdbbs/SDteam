@@ -128,9 +128,13 @@ task.spawn(function()
                     if best then
                         takeQuest(best.Name)
                         warn("[AUTO FARM] Quête prise :", best.Name)
+                    else
+                        warn("[AUTO FARM] Aucune quête disponible.")
                     end
                 else
                     local questName = currentQuest.Value
+                    warn("[AUTO FARM] Quête en cours :", questName)
+
                     local questData = nil
                     for _, q in ipairs(Quests) do
                         if q.Name == questName then
@@ -140,7 +144,9 @@ task.spawn(function()
                     end
 
                     if questData then
+                        warn("[AUTO FARM] Boss de la quête :", questData.BossName)
                         if isBossAlive(questData.BossName) then
+                            warn("[AUTO FARM] Boss est vivant, on tente TP :", questData.BossName)
                             teleportToBoss(questData.BossName)
                         else
                             warn("[AUTO FARM] Boss pas encore spawné :", questData.BossName)
@@ -154,6 +160,7 @@ task.spawn(function()
         task.wait(0.5)
     end
 end)
+
 
 -- Création de la fenêtre UI
 local Window = Fluent:CreateWindow({
