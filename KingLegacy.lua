@@ -1,19 +1,45 @@
-local success, FluentOrError = pcall(function()
-    return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-end)
-
-if not success or type(FluentOrError) ~= "table" then
-    warn("[ERREUR] Échec du chargement de Fluent UI :", FluentOrError)
-    return
-end
-
-local Fluent = FluentOrError
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 -- Services Roblox
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
+
+
+
+-- Création de la fenêtre UI avec Fluent
+print("[INIT] Création de l'interface utilisateur")
+local Window = Fluent:CreateWindow({
+    Title = "King Legacy",
+    SubTitle = "SD Team",
+    TabWidth = 100,
+    Size = UDim2.fromOffset(480, 300),
+    Acrylic = false,
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+local Tabs = {
+    Info = Window:AddTab({ Title = "Info", Icon = "info" }),
+    Main = Window:AddTab({ Title = "Main", Icon = "circle-ellipsis" }),
+    Sea = Window:AddTab({ Title = "Sea", Icon = "waves" }),
+    Misc = Window:AddTab({ Title = "Misc", Icon = "cog" }),
+}
+
+-- Toggle AutoFarm dans l'onglet Main
+Tabs.Main:AddToggle("AutoFarm", {
+    Title = "Auto Farm LVL",
+    Default = false,
+    Callback = function(state)
+        autoFarm = state
+        warn("[TOGGLE] Auto Farm", state and "Activé" or "Désactivé")
+    end
+})
+
+print("[INIT] Script chargé et prêt")
+
+
 
 local autoFarm = false
 local currentBoss = nil
@@ -215,33 +241,4 @@ task.spawn(function()
     end
 end)
 
--- Création de la fenêtre UI avec Fluent
-print("[INIT] Création de l'interface utilisateur")
-local Window = Fluent:CreateWindow({
-    Title = "King Legacy",
-    SubTitle = "SD Team",
-    TabWidth = 100,
-    Size = UDim2.fromOffset(480, 300),
-    Acrylic = false,
-    Theme = "Darker",
-    MinimizeKey = Enum.KeyCode.RightControl
-})
 
-local Tabs = {
-    Info = Window:AddTab({ Title = "Info", Icon = "info" }),
-    Main = Window:AddTab({ Title = "Main", Icon = "circle-ellipsis" }),
-    Sea = Window:AddTab({ Title = "Sea", Icon = "waves" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "cog" }),
-}
-
--- Toggle AutoFarm dans l'onglet Main
-Tabs.Main:AddToggle("AutoFarm", {
-    Title = "Auto Farm LVL",
-    Default = false,
-    Callback = function(state)
-        autoFarm = state
-        warn("[TOGGLE] Auto Farm", state and "Activé" or "Désactivé")
-    end
-})
-
-print("[INIT] Script chargé et prêt")
