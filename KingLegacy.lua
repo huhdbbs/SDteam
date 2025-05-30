@@ -19,7 +19,7 @@ local autoFarm = false
 local Quests = {
     {
         Name = "Kill 4 Soldiers",
-        BossName = "Soldier Lv. 1",
+        BossName = "Soldier [Lv. 1]",
         Amount = 4,
         Rewards = { exp = 350, beli = 100 },
         Level = 0
@@ -93,14 +93,28 @@ end
 local function teleportToBoss(bossName)
     local character = player.Character or player.CharacterAdded:Wait()
     local hrp = character:FindFirstChild("HumanoidRootPart")
-    local boss = findBoss(bossName)
-    if boss and hrp then
-        local bossHRP = boss:FindFirstChild("HumanoidRootPart")
-        if bossHRP then
-            hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0) -- tp juste au-dessus
-        end
+
+    if not hrp then
+        warn("[TP BOSS] Pas de HumanoidRootPart pour le joueur.")
+        return
     end
+
+    local boss = findBoss(bossName)
+    if not boss then
+        warn("[TP BOSS] Boss introuvable :", bossName)
+        return
+    end
+
+    local bossHRP = boss:FindFirstChild("HumanoidRootPart")
+    if not bossHRP then
+        warn("[TP BOSS] Pas de HumanoidRootPart sur le boss :", bossName)
+        return
+    end
+
+    hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0)
+    warn("[TP BOSS] Téléporté au boss :", bossName)
 end
+
 
 -- Boucle AutoFarm
 task.spawn(function()
