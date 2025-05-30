@@ -126,19 +126,7 @@ local function GetBestQuest()
     return nil
 end
 
-local function TeleportToQuestGiver()
-    local giver = workspace:FindFirstChild("AllNPC") and workspace.AllNPC:FindFirstChild("Starter Island Quest")
-    if giver and giver:FindFirstChild("HumanoidRootPart") then
-        local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = giver.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
-            print("[🚶] Téléporté au donneur de quête.")
-            task.wait()
-        end
-    else
-        warn("[❌] Giver de quête introuvable.")
-    end
-end
+
 
 local function TakeQuest(questName)
     local success, err = pcall(function()
@@ -223,7 +211,6 @@ task.spawn(function()
                 quest = GetBestQuest()
                 if quest then
                     print("[📋] Prise de quête :", quest.Name)
-                    TeleportToQuestGiver()
                     TakeQuest(quest.Name)
                     task.wait(0.5)
                 else
