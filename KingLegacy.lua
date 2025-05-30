@@ -174,23 +174,33 @@ end
 
 local function GetCurrentQuestName()
     local player = game.Players.LocalPlayer
-    if player then
-        local playerStats = player:FindFirstChild("PlayerStats")
-        if playerStats then
-            local currentQuest = playerStats:FindFirstChild("CurrentQuest")
-            if currentQuest and currentQuest:IsA("StringValue") then
-                return currentQuest.Value
-            else
-                warn("[❌] CurrentQuest non trouvé ou n'est pas une StringValue.")
-            end
+    if not player then
+        warn("[❌] Aucun joueur détecté.")
+        return nil
+    end
+
+    local playerStats = player:FindFirstChild("PlayerStats")
+    if not playerStats then
+        warn("[❌] PlayerStats non trouvé.")
+        return nil
+    end
+
+    local currentQuest = playerStats:FindFirstChild("CurrentQuest")
+    if currentQuest then
+        if currentQuest:IsA("StringValue") then
+            return currentQuest.Value ~= "" and currentQuest.Value or nil
+        elseif currentQuest:IsA("ObjectValue") and currentQuest.Value then
+            return currentQuest.Value.Name
         else
-            warn("[❌] PlayerStats non trouvé.")
+            warn("[⚠️] CurrentQuest trouvé, mais de type inattendu :", currentQuest.ClassName)
         end
     else
-        warn("[❌] Aucun joueur détecté.")
+        warn("[❌] CurrentQuest non trouvé.")
     end
+
     return nil
 end
+
 
 local AutoFarm = true
 task.spawn(function()
