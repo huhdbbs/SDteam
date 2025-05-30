@@ -1,11 +1,13 @@
 -- Chargement Fluent UI
 local FluentUrl = "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
+print("[INIT] Chargement de Fluent UI...")
 local success, FluentOrError = pcall(loadstring(game:HttpGet(FluentUrl)))
 if not success or type(FluentOrError) ~= "table" then
     warn("[ERREUR] Échec du chargement de Fluent UI :", FluentOrError)
     return
 end
 local Fluent = FluentOrError
+print("[INIT] Fluent UI chargé avec succès")
 
 -- Services Roblox
 local Players = game:GetService("Players")
@@ -14,6 +16,7 @@ local workspace = game:GetService("Workspace")
 local player = Players.LocalPlayer
 
 local autoFarm = false
+local currentBoss = nil
 
 -- Liste des quêtes (exemple, à adapter selon ton jeu)
 local Quests = {
@@ -29,41 +32,59 @@ local Quests = {
 
 -- Récupérer niveau joueur
 local function getLevel()
+    print("[DEBUG] getLevel appelé")
     local stats = player:FindFirstChild("PlayerStats")
     if stats and stats:FindFirstChild("lvl") then
+        print("[DEBUG] Niveau trouvé :", stats.lvl.Value)
         return stats.lvl.Value
+    else
+        warn("[WARN] PlayerStats ou lvl non trouvé")
     end
     return 0
 end
 
 -- Trouver la meilleure quête disponible selon niveau
 local function getBestQuest()
+    print("[DEBUG] getBestQuest appelé")
     local lvl = getLevel()
+    print("[DEBUG] Niveau joueur :", lvl)
     local bestQuest = nil
     for _, quest in ipairs(Quests) do
+        print("[DEBUG] Vérification quête :", quest.Name, "niveau requis:", quest.Level)
         if quest.Level <= lvl then
             if not bestQuest or quest.Level > bestQuest.Level then
                 bestQuest = quest
+                print("[DEBUG] Nouvelle meilleure quête trouvée :", quest.Name)
             end
         end
+    end
+    if bestQuest then
+        print("[DEBUG] Meilleure quête sélectionnée :", bestQuest.Name)
+    else
+        warn("[WARN] Aucune quête disponible pour le niveau", lvl)
     end
     return bestQuest
 end
 
 -- Prendre une quête via Remote
 local function takeQuest(name)
+    print("[DEBUG] Prise de quête :", name)
     local success, err = pcall(function()
         ReplicatedStorage:WaitForChild("Chest"):WaitForChild("Remotes"):WaitForChild("Functions"):WaitForChild("Quest"):InvokeServer("take", name)
     end)
     if not success then
         warn("[ERREUR] Échec prise de quête :", err)
+    else
+        print("[DEBUG] Quête prise avec succès :", name)
     end
 end
 
 local function findAllBosses(name)
+    print("[DEBUG] Recherche de tous les boss nommés :", name)
     local bosses = {}
     local monsterFolder = workspace:FindFirstChild("Monster")
     if not monsterFolder then
+        warn("[WARN] Dossier Monster introuvable")
         return bosses
     end
 
@@ -74,15 +95,20 @@ local function findAllBosses(name)
                 if model:IsA("Model") and model.Name == name then
                     if model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
                         table.insert(bosses, model)
+                        print("[DEBUG] Boss trouvé :", model.Name)
+                    else
+                        warn("[WARN] Boss sans HumanoidRootPart ou Humanoid :", model.Name)
                     end
                 end
             end
+        else
+            print("[DEBUG] Dossier", folderName, "introuvable dans Monster")
         end
     end
 
+    print("[DEBUG] Nombre de boss trouvés :", #bosses)
     return bosses
 end
-
 
 local function getAliveBosses(name)
     local bosses = findAllBosses(name)
@@ -90,63 +116,25 @@ local function getAliveBosses(name)
     for _, boss in ipairs(bosses) do
         if boss.Humanoid.Health > 0 then
             table.insert(alive, boss)
+        else
+            print("[DEBUG] Boss mort ignoré :", boss.Name)
         end
     end
+    print("[DEBUG] Boss vivants :", #alive)
     return alive
 end
 
-local function teleportAndTrackBosses(bossName)
-    local character = player.Character or player.CharacterAdded:Wait()
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-
-    if not hrp then
-        warn("[TP BOSS] Pas de HumanoidRootPart pour le joueur.")
-        return
-    end
-
-    while true do
-        local aliveBosses = getAliveBosses(bossName)
-
-        if #aliveBosses == 0 then
-            warn("[TP BOSS] Aucun boss vivant trouvé pour :", bossName)
-            break
-        end
-
-        -- On prend le premier boss vivant (tu peux modifier pour prendre un autre si tu veux)
-        local boss = aliveBosses[1]
-        local bossHRP = boss:FindFirstChild("HumanoidRootPart")
-        if not bossHRP then
-            warn("[TP BOSS] Boss sans HumanoidRootPart :", bossName)
-            -- Enlever ce boss de la liste et continuer
-            table.remove(aliveBosses, 1)
-            continue
-        end
-
-        -- Teleport initial
-        hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0)
-        warn("[TP BOSS] Téléporté sur boss :", bossName, "Position :", tostring(hrp.Position))
-
-        -- Tant que boss est vivant, on reste dessus et spam la position
-        while boss.Humanoid.Health > 0 do
-            hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0) -- Update position au cas où boss bouge
-            warn("[TP BOSS] Suivi boss :", bossName, "Position :", tostring(hrp.Position))
-            task.wait(0.3)
-        end
-
-        warn("[TP BOSS] Boss mort, passage au suivant :", bossName)
-        -- Boucle continue et reprendra avec le boss suivant vivant
-    end
-end
-
-
+-- Boucle principale AutoFarm
 task.spawn(function()
+    print("[INIT] Démarrage de la boucle AutoFarm")
     while true do
         if autoFarm then
+            print("[AUTO FARM] AutoFarm activé")
             local stats = player:FindFirstChild("PlayerStats")
             if not stats then
                 warn("[AUTO FARM] Pas de PlayerStats trouvé")
                 task.wait(1)
-                continue
+                goto continueLoop
             end
 
             local currentQuest = stats:FindFirstChild("CurrentQuest")
@@ -176,7 +164,7 @@ task.spawn(function()
                     warn("[AUTO FARM] Quête inconnue :", questName)
                     currentBoss = nil
                     task.wait(1)
-                    continue
+                    goto continueLoop
                 end
 
                 local aliveBosses = getAliveBosses(questData.BossName)
@@ -192,7 +180,7 @@ task.spawn(function()
                     if not hrp then
                         warn("[AUTO FARM] Pas de HumanoidRootPart pour le joueur")
                         task.wait(1)
-                        continue
+                        goto continueLoop
                     end
 
                     local bossHRP = currentBoss and currentBoss:FindFirstChild("HumanoidRootPart")
@@ -200,31 +188,31 @@ task.spawn(function()
                         warn("[AUTO FARM] Pas de HumanoidRootPart pour le boss")
                         currentBoss = nil
                         task.wait(1)
-                        continue
+                        goto continueLoop
                     end
 
                     print("[AUTO FARM] Téléportation vers boss...")
                     hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0)
                     print("[AUTO FARM] Position joueur après TP :", tostring(hrp.Position))
-
                 else
                     warn("[AUTO FARM] Aucun boss vivant actuellement pour :", questData.BossName)
                     currentBoss = nil
                 end
             end
         else
+            if currentBoss ~= nil then
+                print("[AUTO FARM] AutoFarm désactivé, reset du boss actuel")
+            end
             currentBoss = nil
         end
 
+        ::continueLoop::
         task.wait(0.3)
     end
 end)
 
-
-
-
-
 -- Création de la fenêtre UI
+print("[INIT] Création de l'interface utilisateur")
 local Window = Fluent:CreateWindow({
     Title = "King Legacy",
     SubTitle = "SD Team",
@@ -242,7 +230,6 @@ local Tabs = {
     Misc = Window:AddTab({ Title = "Misc", Icon = "cog" }),
 }
 
--- Toggle AutoFarm
 Tabs.Main:AddToggle("AutoFarm", {
     Title = "Auto Farm LVL",
     Default = false,
@@ -251,3 +238,5 @@ Tabs.Main:AddToggle("AutoFarm", {
         warn("[TOGGLE] Auto Farm", state and "Activé" or "Désactivé")
     end
 })
+
+print("[INIT] Script chargé et prêt")
