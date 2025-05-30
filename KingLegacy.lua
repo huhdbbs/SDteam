@@ -123,14 +123,19 @@ task.spawn(function()
             local stats = player:FindFirstChild("PlayerStats")
             if stats then
                 local currentQuest = stats:FindFirstChild("CurrentQuest")
-                if not currentQuest or currentQuest.Value == "" then
-                    local best = getBestQuest()
-                    if best then
-                        takeQuest(best.Name)
-                        warn("[AUTO FARM] Quête prise :", best.Name)
-                    else
-                        warn("[AUTO FARM] Aucune quête disponible.")
-                    end
+if not currentQuest or currentQuest.Value == "" then
+    local best = getBestQuest()
+    if best then
+        takeQuest(best.Name)
+        warn("[AUTO FARM] Quête prise :", best.Name)
+
+        -- ✅ Attente jusqu’à ce que la quête soit bien prise
+        repeat
+            task.wait(0.2)
+            currentQuest = stats:FindFirstChild("CurrentQuest")
+        until currentQuest and currentQuest.Value ~= ""
+    end
+
                 else
                     local questName = currentQuest.Value
                     warn("[AUTO FARM] Quête en cours :", questName)
