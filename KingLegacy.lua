@@ -1,5 +1,10 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
+if not Fluent then
+    warn("❌ Échec du chargement de Fluent.")
+    return
+end
+
 -- FENÊTRE PRINCIPALE
 local Window = Fluent:CreateWindow({
     Title = "KING LEGACY !",
@@ -75,10 +80,8 @@ imageButton.MouseButton1Click:Connect(function()
         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.RightControl, false, game)
     end)
 end)
+
 print("🚀 Le bouton est prêt ! Clique sur le logo pour minimiser Fluent UI")
-
-
-
 
 -- 🗺️ Définition des quêtes
 local Quests = {   
@@ -92,9 +95,6 @@ local Quests = {
     { Name = "Kill 1 Captain", BossName = "Captain Lv. 120", Amount = 1, BossFolder = "Boss", Rewards = { exp = 73587.5, beli = 1500 }, Level = 120 },
     { Name = "Kill 1 The Barbaric", BossName = "The Barbaric Lv. 145", Amount = 1, BossFolder = "Boss", Rewards = { exp = 113400, beli = 2000 }, Level = 145 },
 }
-
-
-
 
 -- Function Definitions
 local function GetBossModel(bossName)
@@ -110,17 +110,11 @@ local function GetBossModel(bossName)
     return nil
 end
 
-
-
-
 local function GetLevel()
     local player = game.Players.LocalPlayer
     local levelValue = player:FindFirstChild("PlayerStats") and player.PlayerStats:FindFirstChild("lvl")
     return levelValue and levelValue.Value or 0
 end
-
-
-
 
 local function GetBestQuest()
     local level = GetLevel()
@@ -131,9 +125,6 @@ local function GetBestQuest()
     end
     return nil
 end
-
-
-
 
 local function TeleportToQuestGiver()
     local giver = workspace:FindFirstChild("AllNPC") and workspace.AllNPC:FindFirstChild("Starter Island Quest")
@@ -149,9 +140,6 @@ local function TeleportToQuestGiver()
     end
 end
 
-
-
-
 local function TakeQuest(questName)
     local success, err = pcall(function()
         game:GetService("ReplicatedStorage"):WaitForChild("Chest"):WaitForChild("Remotes"):WaitForChild("Functions"):WaitForChild("Quest"):InvokeServer("take", questName)
@@ -162,9 +150,6 @@ local function TakeQuest(questName)
         warn("[✘] Erreur lors de la prise de quête :", err)
     end
 end
-
-
-
 
 local isTeleporting = false
 
@@ -194,25 +179,16 @@ local function TeleportToBossLoop(bossName)
     end)
 end
 
-
-
-
-
 local function IsBossAlive(bossName)
     local boss = GetBossModel(bossName)
     return boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0
 end
 
-
-
-
 local function GetCurrentQuestName()
     local player = game.Players.LocalPlayer
     if player then
-        -- Check if PlayerStats exists
         local playerStats = player:FindFirstChild("PlayerStats")
         if playerStats then
-            -- Check if CurrentQuest exists
             local currentQuest = playerStats:FindFirstChild("CurrentQuest")
             if currentQuest and currentQuest:IsA("StringValue") then
                 return currentQuest.Value
@@ -227,8 +203,6 @@ local function GetCurrentQuestName()
     end
     return nil
 end
-
-
 
 local AutoFarm = true
 task.spawn(function()
@@ -268,9 +242,6 @@ task.spawn(function()
     end
 end)
 
-
-
-
 Tabs.Main:AddToggle("AutoFarmLevel", {
     Title = "Auto Farm Level",
     Default = false,
@@ -280,18 +251,12 @@ Tabs.Main:AddToggle("AutoFarmLevel", {
     end
 })
 
-
-
-
 local args = {
     "FS_Electro_M1",
     "FS_Cyborg_M1",
     "FS_DragonClaw_M1",
     "FS_DarkLeg_M1"
 }
-
-
-
 
 local Main = Tabs.Main:AddDropdown("Main", {
     Title = "SKILL",
