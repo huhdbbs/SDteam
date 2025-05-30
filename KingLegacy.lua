@@ -139,64 +139,87 @@ local function teleportAndTrackBosses(bossName)
 end
 
 
-local currentBoss = nil -- boss que l'on suit
-
 task.spawn(function()
     while true do
         if autoFarm then
             local stats = player:FindFirstChild("PlayerStats")
-            if stats then
-                local currentQuest = stats:FindFirstChild("CurrentQuest")
-                if not currentQuest or currentQuest.Value == "" then
-                    local best = getBestQuest()
-                    if best then
-                        takeQuest(best.Name)
-                        warn("[AUTO FARM] Quête prise :", best.Name)
-                    end
-                    currentBoss = nil
+            if not stats then
+                warn("[AUTO FARM] Pas de PlayerStats trouvé")
+                task.wait(1)
+                continue
+            end
+
+            local currentQuest = stats:FindFirstChild("CurrentQuest")
+            if not currentQuest or currentQuest.Value == "" then
+                warn("[AUTO FARM] Pas de quête en cours, prise d'une nouvelle...")
+                local best = getBestQuest()
+                if best then
+                    warn("[AUTO FARM] Quête choisie :", best.Name)
+                    takeQuest(best.Name)
                 else
-                    local questName = currentQuest.Value
-                    local questData = nil
-                    for _, q in ipairs(Quests) do
-                        if q.Name == questName then
-                            questData = q
-                            break
-                        end
+                    warn("[AUTO FARM] Aucune quête disponible selon le niveau")
+                end
+                currentBoss = nil
+            else
+                local questName = currentQuest.Value
+                print("[AUTO FARM] Quête actuelle :", questName)
+
+                local questData = nil
+                for _, q in ipairs(Quests) do
+                    if q.Name == questName then
+                        questData = q
+                        break
+                    end
+                end
+
+                if not questData then
+                    warn("[AUTO FARM] Quête inconnue :", questName)
+                    currentBoss = nil
+                    task.wait(1)
+                    continue
+                end
+
+                local aliveBosses = getAliveBosses(questData.BossName)
+                print("[AUTO FARM] Boss vivants trouvés pour '" .. questData.BossName .. "' :", #aliveBosses)
+
+                if #aliveBosses > 0 then
+                    if not currentBoss or currentBoss.Humanoid.Health <= 0 then
+                        currentBoss = aliveBosses[1]
+                        print("[AUTO FARM] Nouveau boss suivi :", currentBoss.Name)
                     end
 
-                    if questData then
-                        local aliveBosses = getAliveBosses(questData.BossName)
-                        if #aliveBosses > 0 then
-                            -- Choisir un boss différent si possible
-                            if not currentBoss or currentBoss.Humanoid.Health <= 0 then
-                                currentBoss = aliveBosses[1]
-                                warn("[AUTO FARM] Suivi nouveau boss :", currentBoss.Name)
-                            end
-                            -- Téléportation au boss actuel
-                            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                            local bossHRP = currentBoss and currentBoss:FindFirstChild("HumanoidRootPart")
-                            if hrp and bossHRP then
-                                hrp.CFrame = bossHRP.CFrame * CFrame.new(0,5,0)
-                                warn("[AUTO FARM] Téléporté sur boss :", currentBoss.Name, "Position :", tostring(hrp.Position))
-                            else
-                                warn("[AUTO FARM] HumanoidRootPart manquant (joueur ou boss)")
-                            end
-                        else
-                            warn("[AUTO FARM] Aucun boss vivant pour :", questData.BossName)
-                            currentBoss = nil
-                        end
-                    else
-                        warn("[AUTO FARM] Quête inconnue :", questName)
-                        currentBoss = nil
+                    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                    if not hrp then
+                        warn("[AUTO FARM] Pas de HumanoidRootPart pour le joueur")
+                        task.wait(1)
+                        continue
                     end
+
+                    local bossHRP = currentBoss and currentBoss:FindFirstChild("HumanoidRootPart")
+                    if not bossHRP then
+                        warn("[AUTO FARM] Pas de HumanoidRootPart pour le boss")
+                        currentBoss = nil
+                        task.wait(1)
+                        continue
+                    end
+
+                    print("[AUTO FARM] Téléportation vers boss...")
+                    hrp.CFrame = bossHRP.CFrame * CFrame.new(0, 5, 0)
+                    print("[AUTO FARM] Position joueur après TP :", tostring(hrp.Position))
+
+                else
+                    warn("[AUTO FARM] Aucun boss vivant actuellement pour :", questData.BossName)
+                    currentBoss = nil
                 end
             end
         else
             currentBoss = nil
         end
+
         task.wait(0.3)
     end
 end)
+
 
 
 
